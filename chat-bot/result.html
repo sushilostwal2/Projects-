@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="text/javascript" async
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML">
+    </script>
+    <title>Result Page</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* Add your CSS styles here */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+             
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-top: 50px;
+        }
+        
+        div {
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 600px;
+        }
+
+        /* Style for the modal */
+        
+
+        
+        .modal-content {
+          
+            z-index: 1;
+            background-color: #f2f2f2;
+            margin: 5% auto 5% 2%;
+            top:0;
+            
+            padding: 20px;
+            border: 1px solid #888;
+            width: 500px;
+            border-radius: 5px;
+        }
+
+        .f button{
+            padding:30px;
+            font-size:20px;
+            margin:auto 2%;
+        }
+
+        /* Close button */
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            float: right;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            background-color: #45a049;
+        }
+    </style>
+    <script>
+        // Function to open the popup
+        function openPopup() {
+            // Get the modal
+            var modal = document.getElementById("myModal");
+
+            // Get the close button
+            var closeButton = document.getElementsByClassName("close")[0];
+
+            // When the user clicks on the close button, close the modal
+            closeButton.onclick = function() {
+                modal.style.display = "none";
+            }
+
+            // When the user clicks anywhere outside of the modal, close it
+            window.onclick = function(event) {
+                if (event.target == modal) {
+                    modal.style.display = "none";
+                }
+            }
+
+            // Display the modal
+            modal.style.display = "block";
+        }
+    </script>
+</head>
+<body>
+   
+    <form id="alexaForm" action="/alexa" method="post" class="f">
+        <input type="hidden" id="abcd" name="userEMAIL" />
+        <input type="hidden" id="abc" name="alexa_input" />
+        
+        <button type="button" class="btn btn-primary submit-btn" onclick="alexaVoiceInput()">Alexa</button>
+    </form>
+    <button type="button" onclick="stopSpeech()">Stop Speech</button>
+
+    <button type="button" class="btn btn-primary submit-btn" onclick="readResultHTML()" >voice</button>
+    <h1>Result Page</h1>
+    <div id="result_html">
+        {{ result_html|safe }}
+    </div>
+    {% if audio_path %}
+        <audio autoplay>
+            <source src="{{ url_for('play_audio', audio_path=audio_path) }}" type="audio/mpeg">
+            Your browser does not support the audio element.
+        </audio>
+    {% endif %}
+
+   
+
+    <!-- The Modal -->
+    
+        <!-- Modal content -->
+        <div class="modal-content"  id="myModal">
+        <form action = "/suggestion/" method = "post"> 
+            <span class="close">&times;</span>
+            <h2>Would you like some suggestions related to your hobby?</h2>
+            <p>If you are interested, click the button below:</p>
+            <button class="btn">Yes, I'm interested</button>
+            <input type="hidden" id="em" name="userEMAIL" />
+        </form>
+        </div>
+    
+
+    <script>
+        // Call the openPopup function after 10 seconds
+        // 10 seconds = 10000 milliseconds
+         
+            setTimeout(openPopup, 1000);
+
+
+
+    </script>
+
+    <script>
+        let email = localStorage.getItem("gm");
+        let abcd = document.getElementById("abcd");
+        abcd.value = email;
+
+
+
+        function readResultHTML() {
+            // Get the content of result_html
+            var resultHTMLContent = document.getElementById('result_html').innerText;
+    
+            // Create a new SpeechSynthesisUtterance instance
+            var speech = new SpeechSynthesisUtterance();
+    
+            // Set the text to be spoken
+            speech.text = resultHTMLContent;
+    
+            // Use the default voice
+            speech.lang = 'en-US';
+    
+            // Speak the text
+            speechSynthesis.speak(speech);
+        }
+        function stopSpeech() {
+            // Check if speech synthesis is speaking
+            if (speechSynthesis.speaking) {
+                // Cancel speech synthesis
+                speechSynthesis.cancel();
+            }
+        }
+        function alexaVoiceInput() {
+            const recognition = new webkitSpeechRecognition() || new SpeechRecognition();
+            recognition.lang = 'en-US';
+    
+            recognition.onstart = function () {
+                document.querySelector('.submit-btn').classList.add('loading');
+            };
+    
+            recognition.onresult = function (event) {
+                const voiceInput = event.results[0][0].transcript;
+                document.getElementById('abc').value = voiceInput;
+                document.getElementById('alexaForm').submit();
+                document.querySelector('.submit-btn').classList.remove('loading');
+            };
+    
+            recognition.start();
+        }
+    </script>
+
+</body>
+</html>
